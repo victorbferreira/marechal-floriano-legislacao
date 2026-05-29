@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legislação Municipal - Marechal Floriano/ES</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #2c3e50;
+            border-bottom-color: #3498db;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            color: #2c3e50;
+        }
+
+        .search-content {
+            display: none;
+        }
+
+        .search-content.active {
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .api-key-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .api-key-input input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .results {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .lei-item {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lei-item:hover {
+            background: #f8f9fa;
+        }
+
+        .lei-item:last-child {
+            border-bottom: none;
+        }
+
+        .lei-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .lei-numero {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .lei-ano {
+            background: #ecf0f1;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .lei-titulo {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .lei-preview {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lei-content {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .lei-content.show {
+            display: block;
+        }
+
+        .lei-text {
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #444;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #3498db;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .highlight {
+            background: #fff59d;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📜 Legislação Municipal de Marechal Floriano/ES</h1>
+            <p class="subtitle">Sistema de busca e consulta de leis municipais</p>
+            <div class="stats">
+                <div class="stat">
+                    <span>📊 Total de leis:</span>
+                    <strong id="total-leis">-</strong>
+                </div>
+                <div class="stat">
+                    <span>📅 Período:</span>
+                    <strong id="periodo">-</strong>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-box">
+            <div class="search-tabs">
+                <button class="tab active" onclick="switchTab('simples')">🔍 Busca Simples</button>
+                <button class="tab" onclick="switchTab('semantica')">🤖 Busca Semântica (IA)</button>
+            </div>
+
+            <div id="busca-simples" class="search-content active">
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Digite o número da lei (ex: 100/1994) ou palavra-chave..."
+                    onkeyup="searchLeis(event)"
+                />
+                <div class="info-box">
+                    💡 <strong>Dica:</strong> Busque por número (ex: "100/1994"), ano (ex: "2011") ou palavras-chave no título/conteúdo
+                </div>
+            </div>
+
+            <div id="busca-semantica" class="search-content">
+                <input
+                    type="text"
+                    id="semantic-input"
+                    placeholder="Faça uma pergunta sobre a legislação (ex: 'leis sobre previdência dos servidores')"
+                />
+                <button onclick="searchSemantic()" id="semantic-btn">🚀 Buscar com IA</button>
+                <div class="info-box">
+                    🤖 <strong>IA Integrada:</strong> Busca semântica usando Claude Sonnet 4.6 - sem necessidade de API key!
+                </div>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="loading">Carregando legislação...</div>
+        </div>
+    </div>
+
+    <script>
+        let legislacao = [];
+        let currentTab = 'simples';
+
+        // Carregar dados
+        async function loadData() {
+            try {
+                const response = await fetch('legislacao.json');
+                legislacao = await response.json();
+
+                // Atualizar estatísticas
+                document.getElementById('total-leis').textContent = legislacao.length;
+                const anos = legislacao.map(l => parseInt(l.ano)).sort((a,b) => a-b);
+                document.getElementById('periodo').textContent = `${anos[0]} - ${anos[anos.length-1]}`;
+
+                // Mostrar todas as leis inicialmente
+                displayResults(legislacao);
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="no-results">
+                        ❌ Erro ao carregar dados: ${error.message}
+                        <br><br>
+                        Certifique-se de que o arquivo legislacao.json está no mesmo diretório.
+                    </div>
+                `;
+            }
+        }
+
+        // Alternar abas
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // Atualizar abas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.search-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'simples') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('busca-simples').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('busca-semantica').classList.add('active');
+            }
+        }
+
+        // Busca simples
+        function searchLeis(event) {
+            const query = event.target.value.toLowerCase().trim();
+
+            if (query.length === 0) {
+                displayResults(legislacao);
+                return;
+            }
+
+            const results = legislacao.filter(lei => {
+                return lei.id.toLowerCase().includes(query) ||
+                       lei.numero.includes(query) ||
+                       lei.ano.includes(query) ||
+                       lei.titulo.toLowerCase().includes(query) ||
+                       lei.conteudo.toLowerCase().includes(query);
+            });
+
+            displayResults(results, query);
+        }
+
+        // Busca semântica com Claude (via backend Vercel)
+        async function searchSemantic() {
+            const query = document.getElementById('semantic-input').value.trim();
+
+            if (!query) {
+                alert('Por favor, digite sua pergunta.');
+                return;
+            }
+
+            const btn = document.getElementById('semantic-btn');
+            btn.disabled = true;
+            btn.textContent = '🔄 Analisando...';
+
+            document.getElementById('results').innerHTML = '<div class="loading">🤖 Claude está analisando a legislação...</div>';
+
+            try {
+                // Preparar contexto com todas as leis (apenas metadados para economizar tokens)
+                const leisResumo = legislacao.map(l => ({
+                    id: l.id,
+                    titulo: l.titulo,
+                    preview: l.conteudo.substring(0, 300)
+                }));
+
+                // Chamar backend Vercel (esconde a API key)
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        leis: leisResumo
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro desconhecido');
+                }
+
+                const { leiIds } = await response.json();
+
+                // Filtrar leis relevantes
+                const relevantLeis = legislacao.filter(l => leiIds.includes(l.id));
+
+                if (relevantLeis.length === 0) {
+                    document.getElementById('results').innerHTML = `
+                        <div class="no-results">
+                            🤖 A IA não encontrou leis diretamente relacionadas a "${query}"
+                            <br><br>
+                            Tente reformular sua pergunta ou use a busca simples.
+                        </div>
+                    `;
+                } else {
+                    displayResults(relevantLeis, null, `🤖 Encontradas ${relevantLeis.length} leis relevantes para "${query}"`);
+                }
+
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="no-results">
+                        ❌ Erro na busca semântica: ${error.message}
+                        <br><br>
+                        Tente novamente ou use a busca simples.
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Buscar com IA';
+            }
+        }
+
+        // Exibir resultados
+        function displayResults(leis, highlightTerm = null, customMessage = null) {
+            const resultsDiv = document.getElementById('results');
+
+            if (leis.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">Nenhuma lei encontrada.</div>';
+                return;
+            }
+
+            let html = '';
+
+            if (customMessage) {
+                html += `<div class="info-box">${customMessage}</div>`;
+            }
+
+            leis.forEach((lei, index) => {
+                let titulo = lei.titulo || 'Sem título';
+                let preview = lei.conteudo.substring(0, 200).replace(/\n/g, ' ') + '...';
+
+                if (highlightTerm) {
+                    const regex = new RegExp(`(${highlightTerm})`, 'gi');
+                    titulo = titulo.replace(regex, '<span class="highlight">$1</span>');
+                    preview = preview.replace(regex, '<span class="highlight">$1</span>');
+                }
+
+                html += `
+                    <div class="lei-item" onclick="toggleLei(${index})">
+                        <div class="lei-header">
+                            <div class="lei-numero">Lei ${lei.id}</div>
+                            <div class="lei-ano">${lei.ano}</div>
+                        </div>
+                        <div class="lei-titulo">${titulo}</div>
+                        <div class="lei-preview">${preview}</div>
+                        <div class="lei-content" id="lei-${index}">
+                            <div class="lei-text">${lei.conteudo}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Toggle visualização da lei
+        function toggleLei(index) {
+            const content = document.getElementById(`lei-${index}`);
+            content.classList.toggle('show');
+        }
+
+        // Enter para buscar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+
+            document.getElementById('semantic-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchSemantic();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
