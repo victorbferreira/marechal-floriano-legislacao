@@ -312,6 +312,8 @@
     <script>
         let legislacao = [];
         let currentTab = 'simples';
+        let displayedCount = 0;
+        const BATCH_SIZE = 50;
 
         // Carregar dados
         async function loadData() {
@@ -329,10 +331,16 @@
                 const anos = legislacao.map(l => parseInt(l.ano)).sort((a,b) => a-b);
                 document.getElementById('periodo').textContent = `${anos[0]} - ${anos[anos.length-1]}`;
 
-                // Mostrar todas as leis inicialmente
-                console.log('🎨 Chamando displayResults()...');
-                displayResults(legislacao);
-                console.log('✅ displayResults() completada');
+                // Mostrar mensagem inicial (não exibe todas as leis)
+                document.getElementById('results').innerHTML = `
+                    <div class="info-box" style="text-align: center; padding: 40px;">
+                        <h3 style="margin-bottom: 15px;">✅ ${legislacao.length} leis carregadas!</h3>
+                        <p style="font-size: 15px; color: #555;">
+                            Use a busca acima para encontrar leis por número (ex: 100/1994) ou palavra-chave.
+                        </p>
+                    </div>
+                `;
+                console.log('✅ Sistema pronto');
             } catch (error) {
                 console.error('❌ Erro em loadData():', error);
                 document.getElementById('results').innerHTML = `
@@ -367,7 +375,15 @@
             const query = event.target.value.toLowerCase().trim();
 
             if (query.length === 0) {
-                displayResults(legislacao);
+                // Voltar para mensagem inicial
+                document.getElementById('results').innerHTML = `
+                    <div class="info-box" style="text-align: center; padding: 40px;">
+                        <h3 style="margin-bottom: 15px;">✅ ${legislacao.length} leis carregadas!</h3>
+                        <p style="font-size: 15px; color: #555;">
+                            Use a busca acima para encontrar leis por número (ex: 100/1994) ou palavra-chave.
+                        </p>
+                    </div>
+                `;
                 return;
             }
 
@@ -453,25 +469,33 @@
             }
         }
 
-        // Exibir resultados
+        // Exibir resultados (máximo 100 para evitar travar)
         function displayResults(leis, highlightTerm = null, customMessage = null) {
-            console.log('📋 displayResults recebeu', leis.length, 'leis');
             const resultsDiv = document.getElementById('results');
-            console.log('📦 resultsDiv encontrado:', !!resultsDiv);
 
             if (leis.length === 0) {
-                resultsDiv.innerHTML = '<div class="no-results">Nenhuma lei encontrada.</div>';
+                resultsDiv.innerHTML = '<div class="no-results">Nenhuma lei encontrada para esta busca.</div>';
                 return;
             }
 
-            console.log('🔨 Gerando HTML para', leis.length, 'leis...');
             let html = '';
 
             if (customMessage) {
                 html += `<div class="info-box">${customMessage}</div>`;
             }
 
-            leis.forEach((lei, index) => {
+            // Avisar se houver muitos resultados
+            const maxDisplay = 100;
+            if (leis.length > maxDisplay) {
+                html += `<div class="info-box" style="background: #fff3cd; border-color: #ffc107;">
+                    ⚠️ <strong>Muitos resultados (${leis.length}).</strong>
+                    Mostrando apenas os primeiros ${maxDisplay}. Refine sua busca para melhores resultados.
+                </div>`;
+            }
+
+            const leisToShow = leis.slice(0, maxDisplay);
+
+            leisToShow.forEach((lei, index) => {
                 let titulo = lei.titulo || 'Sem título';
                 let preview = lei.conteudo.substring(0, 200).replace(/\n/g, ' ') + '...';
 
@@ -482,30 +506,27 @@
                 }
 
                 html += `
-                    <div class="lei-item" onclick="toggleLei(${index})">
+                    <div class="lei-item" onclick="toggleLei('result-${index}')">
                         <div class="lei-header">
                             <div class="lei-numero">Lei ${lei.id}</div>
                             <div class="lei-ano">${lei.ano}</div>
                         </div>
                         <div class="lei-titulo">${titulo}</div>
                         <div class="lei-preview">${preview}</div>
-                        <div class="lei-content" id="lei-${index}">
+                        <div class="lei-content" id="result-${index}">
                             <div class="lei-text">${lei.conteudo}</div>
                         </div>
                     </div>
                 `;
             });
 
-            console.log('✍️ HTML gerado, tamanho:', html.length, 'chars');
-            console.log('🎨 Aplicando innerHTML...');
             resultsDiv.innerHTML = html;
-            console.log('✅ innerHTML aplicado, children:', resultsDiv.children.length);
         }
 
         // Toggle visualização da lei
-        function toggleLei(index) {
-            const content = document.getElementById(`lei-${index}`);
-            content.classList.toggle('show');
+        function toggleLei(id) {
+            const content = document.getElementById(id);
+            if (content) content.classList.toggle('show');
         }
 
         // Enter para buscar
