@@ -316,8 +316,10 @@
         // Carregar dados
         async function loadData() {
             try {
-                const response = await fetch('legislacao.json');
+                const response = await fetch('/legislacao.json');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 legislacao = await response.json();
+                console.log('✅ Carregadas', legislacao.length, 'leis');
 
                 // Atualizar estatísticas
                 document.getElementById('total-leis').textContent = legislacao.length;
