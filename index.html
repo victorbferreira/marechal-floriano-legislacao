@@ -455,13 +455,16 @@
 
         // Exibir resultados
         function displayResults(leis, highlightTerm = null, customMessage = null) {
+            console.log('📋 displayResults recebeu', leis.length, 'leis');
             const resultsDiv = document.getElementById('results');
+            console.log('📦 resultsDiv encontrado:', !!resultsDiv);
 
             if (leis.length === 0) {
                 resultsDiv.innerHTML = '<div class="no-results">Nenhuma lei encontrada.</div>';
                 return;
             }
 
+            console.log('🔨 Gerando HTML para', leis.length, 'leis...');
             let html = '';
 
             if (customMessage) {
@@ -493,7 +496,10 @@
                 `;
             });
 
+            console.log('✍️ HTML gerado, tamanho:', html.length, 'chars');
+            console.log('🎨 Aplicando innerHTML...');
             resultsDiv.innerHTML = html;
+            console.log('✅ innerHTML aplicado, children:', resultsDiv.children.length);
         }
 
         // Toggle visualização da lei
