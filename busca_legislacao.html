@@ -292,14 +292,6 @@
             </div>
 
             <div id="busca-semantica" class="search-content">
-                <div class="api-key-input">
-                    <input
-                        type="password"
-                        id="api-key"
-                        placeholder="Cole sua API Key do Claude (sk-ant-...)"
-                    />
-                    <button onclick="salvarApiKey()">💾 Salvar</button>
-                </div>
                 <input
                     type="text"
                     id="semantic-input"
@@ -307,8 +299,7 @@
                 />
                 <button onclick="searchSemantic()" id="semantic-btn">🚀 Buscar com IA</button>
                 <div class="info-box">
-                    🔒 <strong>Privacidade:</strong> Sua API key é salva apenas no navegador (localStorage).
-                    <a href="https://console.anthropic.com/" target="_blank">Obtenha sua chave aqui</a>
+                    🤖 <strong>IA Integrada:</strong> Busca semântica usando Claude Sonnet 4.6 - sem necessidade de API key!
                 </div>
             </div>
         </div>
@@ -383,15 +374,9 @@
             displayResults(results, query);
         }
 
-        // Busca semântica com Claude
+        // Busca semântica com Claude (via backend Vercel)
         async function searchSemantic() {
-            const apiKey = localStorage.getItem('claude_api_key');
             const query = document.getElementById('semantic-input').value.trim();
-
-            if (!apiKey) {
-                alert('Por favor, configure sua API Key do Claude primeiro.');
-                return;
-            }
 
             if (!query) {
                 alert('Por favor, digite sua pergunta.');
@@ -412,41 +397,24 @@
                     preview: l.conteudo.substring(0, 300)
                 }));
 
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                // Chamar backend Vercel (esconde a API key)
+                const response = await fetch('/api/search', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'claude-sonnet-4-6',
-                        max_tokens: 4096,
-                        messages: [{
-                            role: 'user',
-                            content: `Você é um assistente especializado em legislação municipal de Marechal Floriano/ES.
-
-Analise esta pergunta do usuário: "${query}"
-
-Base de dados disponível (${legislacao.length} leis):
-${JSON.stringify(leisResumo, null, 2)}
-
-Sua tarefa:
-1. Identifique as leis mais relevantes para a pergunta (máximo 10)
-2. Retorne APENAS um array JSON com os IDs das leis, no formato: ["100/1994", "200/2005", ...]
-3. Ordene por relevância (mais relevante primeiro)
-
-Responda APENAS com o array JSON, sem explicações adicionais.`
-                        }]
+                        query: query,
+                        leis: leisResumo
                     })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro desconhecido');
                 }
 
-                const data = await response.json();
-                const leiIds = JSON.parse(data.content[0].text);
+                const { leiIds } = await response.json();
 
                 // Filtrar leis relevantes
                 const relevantLeis = legislacao.filter(l => leiIds.includes(l.id));
@@ -468,7 +436,7 @@ Responda APENAS com o array JSON, sem explicações adicionais.`
                     <div class="no-results">
                         ❌ Erro na busca semântica: ${error.message}
                         <br><br>
-                        Verifique sua API key e conexão com a internet.
+                        Tente novamente ou use a busca simples.
                     </div>
                 `;
             } finally {
@@ -526,27 +494,9 @@ Responda APENAS com o array JSON, sem explicações adicionais.`
             content.classList.toggle('show');
         }
 
-        // Salvar API key
-        function salvarApiKey() {
-            const key = document.getElementById('api-key').value.trim();
-            if (key) {
-                localStorage.setItem('claude_api_key', key);
-                alert('✅ API Key salva com sucesso!');
-            }
-        }
-
-        // Carregar API key salva
-        function loadApiKey() {
-            const saved = localStorage.getItem('claude_api_key');
-            if (saved) {
-                document.getElementById('api-key').value = saved;
-            }
-        }
-
         // Enter para buscar
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
-            loadApiKey();
 
             document.getElementById('semantic-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
