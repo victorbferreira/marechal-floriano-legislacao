@@ -315,8 +315,11 @@
 
         // Carregar dados
         async function loadData() {
+            console.log('🚀 loadData() iniciada');
             try {
-                const response = await fetch('/legislacao.json');
+                console.log('📡 Fetchando /legislacao.json...');
+                const response = await fetch('/legislacao.json?v=2');
+                console.log('📡 Response recebida:', response.status, response.ok);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 legislacao = await response.json();
                 console.log('✅ Carregadas', legislacao.length, 'leis');
@@ -327,13 +330,16 @@
                 document.getElementById('periodo').textContent = `${anos[0]} - ${anos[anos.length-1]}`;
 
                 // Mostrar todas as leis inicialmente
+                console.log('🎨 Chamando displayResults()...');
                 displayResults(legislacao);
+                console.log('✅ displayResults() completada');
             } catch (error) {
+                console.error('❌ Erro em loadData():', error);
                 document.getElementById('results').innerHTML = `
                     <div class="no-results">
                         ❌ Erro ao carregar dados: ${error.message}
                         <br><br>
-                        Certifique-se de que o arquivo legislacao.json está no mesmo diretório.
+                        Console (F12) tem mais detalhes.
                     </div>
                 `;
             }
